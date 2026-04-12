@@ -4,7 +4,7 @@
 - **Frontend**: React 18 + Vite + TailwindCSS + Chart.js
 - **Backend**: FastAPI + Python 3.11
 - **Database**: MongoDB (Motor async driver)
-- **AI**: Google Gemini API
+- **AI**: Groq Api
 - **Auth**: JWT (python-jose + bcrypt)
 - **File parsing**: PyMuPDF + python-docx
 
@@ -34,7 +34,7 @@ npm run dev
 - Default connection: `mongodb://localhost:27017/edumind`
 
 ### 4. Get API Keys
-- **Gemini**: https://aistudio.google.com/app/apikey (free tier available)
+- **Groq**: https://groq.com/ (free tier available)
 
 ## Environment Variables
 
@@ -44,7 +44,7 @@ MONGODB_URL=mongodb://localhost:27017/edumind
 SECRET_KEY=change-this-to-a-random-secret-min-32-chars
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=1440
-GEMINI_API_KEY=your-gemini-api-key
+Groq_KEY=your-groq-api-key
 UPLOAD_DIR=./uploads
 ```
 
@@ -57,8 +57,8 @@ VITE_API_URL=http://localhost:8000/api
 1. User Registration & Login (JWT auth, multi-user)
 2. Dashboard with real stats
 3. Upload Notes (PDF, DOCX, TXT)
-4. AI Summarization (Gemini)
-5. AI Chatbot (Gemini)
+4. AI Summarization 
+5. AI Chatbot
 6. Quiz Generation & Evaluation
 7. Performance Analytics (real charts)
 8. Weak Topic Detection (KMeans ML)

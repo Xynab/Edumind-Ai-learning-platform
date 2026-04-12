@@ -16,7 +16,8 @@ app = FastAPI(title="EduMind AI", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL, "http://localhost:5174", "http://localhost:3000","http://localhost:5173"],
+    
+    allow_origins=[settings.FRONTEND_URL,"https://edumind-backend-vay5.onrender.com", "http://localhost:5174", "http://localhost:3000","http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -4,10 +4,10 @@ import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const navigate   = useNavigate();
-  const [form, setForm]   = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [errorType, setErrorType] = useState(""); // "not_found" | "wrong_password" | "other"
+  const navigate  = useNavigate();
+  const [form, setForm]       = useState({ email: "", password: "" });
+  const [error, setError]     = useState("");
+  const [errorType, setErrorType] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handle = async (e) => {
@@ -17,19 +17,13 @@ export default function LoginPage() {
       const user = await login(form.email, form.password);
       navigate(user.role === "admin" ? "/admin" : "/");
     } catch (err) {
-      const detail = err.response?.data?.detail || "";
       const status = err.response?.status;
+      const detail = err.response?.data?.detail || "";
 
-      if (detail.toLowerCase().includes("not found") ||
-          detail.toLowerCase().includes("no account") ||
-          detail.toLowerCase().includes("does not exist") ||
-          status === 404) {
+      if (status === 404) {
         setErrorType("not_found");
         setError("No account found with this email.");
-      } else if (detail.toLowerCase().includes("password") ||
-                 detail.toLowerCase().includes("incorrect") ||
-                 detail.toLowerCase().includes("invalid") ||
-                 status === 401) {
+      } else if (status === 401) {
         setErrorType("wrong_password");
         setError("Incorrect password. Please try again.");
       } else {
@@ -70,7 +64,8 @@ export default function LoginPage() {
             EduMind{" "}
             <span style={{
               background: "linear-gradient(90deg,#7c6af7,#f472b6)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}>AI</span>
           </h2>
           <p style={{ color: "var(--text3)", fontSize: 13 }}>
@@ -94,6 +89,7 @@ export default function LoginPage() {
               required
             />
           </div>
+
           <div style={{ marginBottom: 20 }}>
             <label style={{
               fontSize: 13, fontWeight: 500,
@@ -110,7 +106,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Error message */}
+          {/* Error messages */}
           {error && (
             <div style={{
               background: "rgba(248,113,113,0.12)",
@@ -118,23 +114,35 @@ export default function LoginPage() {
               borderRadius: 10, padding: "12px 14px",
               fontSize: 13, color: "var(--red)", marginBottom: 16,
             }}>
-              <div style={{ marginBottom: errorType === "not_found" ? 8 : 0 }}>
-                ⚠️ {error}
-              </div>
+              <div>⚠️ {error}</div>
+
               {errorType === "not_found" && (
-                <div style={{ fontSize: 13 }}>
-                  Don't have an account?{" "}
+                <div style={{
+                  marginTop: 8, paddingTop: 8,
+                  borderTop: "1px solid rgba(248,113,113,0.2)",
+                  display: "flex", alignItems: "center",
+                  justifyContent: "space-between",
+                }}>
+                  <span style={{ color: "var(--text2)" }}>
+                    Don't have an account?
+                  </span>
                   <Link
                     to="/register"
-                    style={{ color: "var(--accent)", fontWeight: 600 }}
+                    style={{
+                      color: "var(--accent)", fontWeight: 600,
+                      fontSize: 13, textDecoration: "none",
+                      background: "rgba(124,106,247,0.12)",
+                      padding: "4px 12px", borderRadius: 20,
+                    }}
                   >
-                    Register for free →
+                    Register free →
                   </Link>
                 </div>
               )}
+
               {errorType === "wrong_password" && (
-                <div style={{ fontSize: 13, marginTop: 4 }}>
-                  Forgot your password? Try registering again with a new account.
+                <div style={{ marginTop: 6, color: "var(--text2)" }}>
+                  Forgot your password? Try creating a new account.
                 </div>
               )}
             </div>

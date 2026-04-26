@@ -5,10 +5,10 @@ import { useAuth } from "../context/AuthContext";
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm]     = useState({ name: "", email: "", password: "", goal: "" });
-  const [error, setError]   = useState("");
-  const [errorType, setErrorType] = useState(""); // "already_exists" | "other"
-  const [loading, setLoading] = useState(false);
+  const [form, setForm]         = useState({ name: "", email: "", password: "", goal: "" });
+  const [error, setError]       = useState("");
+  const [errorType, setErrorType] = useState("");
+  const [loading, setLoading]   = useState(false);
 
   const handle = async (e) => {
     e.preventDefault();
@@ -17,14 +17,10 @@ export default function RegisterPage() {
       await register(form.name, form.email, form.password, form.goal);
       navigate("/");
     } catch (err) {
-      const detail = err.response?.data?.detail || "";
       const status = err.response?.status;
+      const detail = err.response?.data?.detail || "";
 
-      if (detail.toLowerCase().includes("already") ||
-          detail.toLowerCase().includes("exists") ||
-          detail.toLowerCase().includes("registered") ||
-          detail.toLowerCase().includes("duplicate") ||
-          status === 409 || status === 400) {
+      if (status === 409) {
         setErrorType("already_exists");
         setError("An account with this email already exists.");
       } else {
@@ -69,7 +65,8 @@ export default function RegisterPage() {
             Join{" "}
             <span style={{
               background: "linear-gradient(90deg,#7c6af7,#f472b6)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}>
               EduMind AI
             </span>
@@ -141,7 +138,7 @@ export default function RegisterPage() {
             </select>
           </div>
 
-          {/* Error message */}
+          {/* Error messages */}
           {error && (
             <div style={{
               background: "rgba(248,113,113,0.12)",
@@ -149,17 +146,28 @@ export default function RegisterPage() {
               borderRadius: 10, padding: "12px 14px",
               fontSize: 13, color: "var(--red)", marginBottom: 14,
             }}>
-              <div style={{ marginBottom: errorType === "already_exists" ? 8 : 0 }}>
-                ⚠️ {error}
-              </div>
+              <div>⚠️ {error}</div>
+
               {errorType === "already_exists" && (
-                <div style={{ fontSize: 13 }}>
-                  Already have an account?{" "}
+                <div style={{
+                  marginTop: 8, paddingTop: 8,
+                  borderTop: "1px solid rgba(248,113,113,0.2)",
+                  display: "flex", alignItems: "center",
+                  justifyContent: "space-between",
+                }}>
+                  <span style={{ color: "var(--text2)" }}>
+                    Already have an account?
+                  </span>
                   <Link
                     to="/login"
-                    style={{ color: "var(--accent)", fontWeight: 600 }}
+                    style={{
+                      color: "var(--accent)", fontWeight: 600,
+                      fontSize: 13, textDecoration: "none",
+                      background: "rgba(124,106,247,0.12)",
+                      padding: "4px 12px", borderRadius: 20,
+                    }}
                   >
-                    Sign in here →
+                    Sign in →
                   </Link>
                 </div>
               )}

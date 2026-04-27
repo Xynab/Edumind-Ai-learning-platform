@@ -5,10 +5,11 @@ import { useAuth } from "../context/AuthContext";
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate  = useNavigate();
-  const [form, setForm]       = useState({ email: "", password: "" });
-  const [error, setError]     = useState("");
+  const [form, setForm]         = useState({ email: "", password: "" });
+  const [error, setError]       = useState("");
   const [errorType, setErrorType] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [showAdminHint, setShowAdminHint] = useState(false);
 
   const handle = async (e) => {
     e.preventDefault();
@@ -19,7 +20,6 @@ export default function LoginPage() {
     } catch (err) {
       const status = err.response?.status;
       const detail = err.response?.data?.detail || "";
-
       if (status === 404) {
         setErrorType("not_found");
         setError("No account found with this email.");
@@ -35,6 +35,12 @@ export default function LoginPage() {
     }
   };
 
+  const fillAdmin = () => {
+    setForm({ email: "zainab@gmail.com", password: "" });
+    setShowAdminHint(false);
+    setError(""); setErrorType("");
+  };
+
   return (
     <div style={{
       minHeight: "100vh", display: "flex",
@@ -47,6 +53,7 @@ export default function LoginPage() {
         borderRadius: 20, padding: 40,
         width: 420, maxWidth: "95vw",
       }}>
+
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{
@@ -73,6 +80,89 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* Admin login button */}
+        <div style={{ marginBottom: 20 }}>
+          <button
+            onClick={() => setShowAdminHint(p => !p)}
+            style={{
+              width: "100%", padding: "11px 16px",
+              background: showAdminHint
+                ? "rgba(248,113,113,0.12)"
+                : "rgba(124,106,247,0.08)",
+              border: `1px solid ${showAdminHint
+                ? "rgba(248,113,113,0.3)"
+                : "rgba(124,106,247,0.25)"}`,
+              borderRadius: 10, cursor: "pointer",
+              display: "flex", alignItems: "center",
+              justifyContent: "space-between",
+              fontFamily: "inherit", transition: ".2s",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 18 }}>⚙️</span>
+              <div style={{ textAlign: "left" }}>
+                <div style={{
+                  fontSize: 13, fontWeight: 600,
+                  color: showAdminHint ? "var(--red)" : "var(--accent)",
+                }}>
+                  Admin Login
+                </div>
+                <div style={{ fontSize: 11, color: "var(--text3)" }}>
+                  Platform administrator access
+                </div>
+              </div>
+            </div>
+            <span style={{
+              fontSize: 12, color: "var(--text3)",
+              transform: showAdminHint ? "rotate(180deg)" : "none",
+              transition: ".2s", display: "inline-block",
+            }}>
+              ▼
+            </span>
+          </button>
+
+          {/* Admin hint panel */}
+          {showAdminHint && (
+            <div style={{
+              marginTop: 8, padding: "14px 16px",
+              background: "rgba(124,106,247,0.06)",
+              border: "1px solid rgba(124,106,247,0.2)",
+              borderRadius: 10,
+            }}>
+              <div style={{
+                fontSize: 12, color: "var(--text2)",
+                marginBottom: 10, lineHeight: 1.6,
+              }}>
+                🔐 Use your admin credentials to access the admin panel.
+                Admin accounts have full platform management access.
+              </div>
+              <button
+                onClick={fillAdmin}
+                style={{
+                  padding: "7px 16px",
+                  background: "linear-gradient(135deg,var(--accent),#5b4de8)",
+                  color: "#fff", border: "none", borderRadius: 8,
+                  fontFamily: "inherit", fontSize: 12,
+                  fontWeight: 500, cursor: "pointer",
+                }}
+              >
+                ⚙️ Fill Admin Email
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12,
+          marginBottom: 20, color: "var(--text3)", fontSize: 12,
+        }}>
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          or sign in as learner
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        </div>
+
+        {/* Login form */}
         <form onSubmit={handle}>
           <div style={{ marginBottom: 16 }}>
             <label style={{
@@ -115,7 +205,6 @@ export default function LoginPage() {
               fontSize: 13, color: "var(--red)", marginBottom: 16,
             }}>
               <div>⚠️ {error}</div>
-
               {errorType === "not_found" && (
                 <div style={{
                   marginTop: 8, paddingTop: 8,
@@ -139,7 +228,6 @@ export default function LoginPage() {
                   </Link>
                 </div>
               )}
-
               {errorType === "wrong_password" && (
                 <div style={{ marginTop: 6, color: "var(--text2)" }}>
                   Forgot your password? Try creating a new account.

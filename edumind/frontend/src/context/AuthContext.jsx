@@ -1,49 +1,80 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import api from "../services/api";
+from passlib.context import CryptContext
+from fastapi import HTTPException
+from database import get_db
+from utils.jwt_utils import create_access_token
+from datetime import datetime
 
-const AuthContext = createContext(null);
+pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(null);
-  const [loading, setLoading] = useState(true);
+ADMIN_EMAILS = [
+    "zainab@gmail.com",
+    "admin@edumind.ai",
+]
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const stored = localStorage.getItem("user");
-    if (token && stored) {
-      try { setUser(JSON.parse(stored)); } catch { localStorage.clear(); }
+
+async def register_user(name: str, email: str, password: str, goal: str = "") -> dict:
+    db = get_db()
+    if await db.users.find_one({"email": email}):
+        raise HTTPException(
+            status_code=409,
+            detail="Email already registered. Please login instead."
+        )
+    safe_password = password[:72]
+    role = "admin" if email in ADMIN_EMAILS else "student"
+    user = {
+        "name":          name,
+        "email":         email,
+        "password_hash": pwd.hash(safe_password),
+        "role":          role,
+        "plan":          "free",
+        "goal":          goal,
+        "xp_points":     0,
+        "streak_days":   0,
+        "created_at":    datetime.utcnow(),
+        "last_active":   datetime.utcnow(),
+        "is_active":     True,
     }
-    setLoading(false);
-  }, []);
+    result  = await db.users.insert_one(user)
+    user_id = str(result.inserted_id)
+    token   = create_access_token({
+        "sub": user_id, "email": email, "role": role,
+    })
+    return {
+        "access_token": token, "token_type": "bearer",
+        "user_id": user_id, "name": name,
+        "email": email, "role": role, "plan": "free",
+    }
 
-  const login = async (email, password) => {
-    const res = await api.post("/auth/login", { email, password });
-    const { access_token, ...userData } = res.data;
-    localStorage.setItem("token", access_token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
-    return userData;
-  };
 
-  const register = async (name, email, password, goal) => {
-    const res = await api.post("/auth/register", { name, email, password, goal });
-    const { access_token, ...userData } = res.data;
-    localStorage.setItem("token", access_token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
-    return userData;
-  };
+async def login_user(email: str, password: str) -> dict:
+    db   = get_db()
+    user = await db.users.find_one({"email": email})
 
-  const logout = () => {
-    localStorage.clear();
-    setUser(null);
-  };
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="No account found with this email. Please register first."
+        )
 
-  return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+    if not pwd.verify(password[:72], user["password_hash"]):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect password. Please try again."
+        )
 
-export const useAuth = () => useContext(AuthContext);
+    user_id = str(user["_id"])
+    await db.users.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"last_active": datetime.utcnow()}},
+    )
+    token = create_access_token({
+        "sub":   user_id,
+        "email": email,
+        "role":  user.get("role", "student"),
+    })
+    return {
+        "access_token": token, "token_type": "bearer",
+        "user_id": user_id, "name": user["name"],
+        "email": email, "role": user.get("role", "student"),
+        "plan": user.get("plan", "free"),
+          }
